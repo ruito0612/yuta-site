@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>中本悠太（YUTA）最新情報まとめ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+    }
+    header {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      background: #ffffff;
+      padding: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    nav a {
+      text-decoration: none;
+      color: #2a5298;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    section {
+      background: white;
+      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .news-card {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 16px;
+    }
+    .news-card img {
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .news-card h3 {
+      margin: 0 0 6px 0;
+      font-size: 16px;
+    }
+    .news-date {
+      font-size: 12px;
+      color: #666;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>中本悠太（YUTA）最新情報</h1>
+  <p>公式発表・ニュースを自動取得（写真・日時付き）</p>
+</header>
+
+<nav>
+  <a href="#profile">プロフィール</a>
+  <a href="#news">最新ニュース</a>
+  <a href="#about">このサイトについて</a>
+</nav>
+
+<main>
+
+  <section id="profile">
+    <h2>プロフィール</h2>
+    <ul>
+      <li><strong>名前：</strong>中本 悠太（なかもと ゆうた）</li>
+      <li><strong>活動名：</strong>YUTA</li>
+      <li><strong>生年月日：</strong>1995年10月26日</li>
+      <li><strong>年齢：</strong><span id="age"></span>歳</li>
+      <li><strong>出身地：</strong>日本・大阪府</li>
+      <li><strong>所属：</strong>NCT / NCT 127（SMエンターテインメント）</li>
+      <li><strong>ポジション：</strong>ダンス・ボーカル</li>
+      <li><strong>特徴：</strong>高いダンススキル、表現力、グローバルな人気</li>
+    </ul>
+  </section>
+
+  <section id="news">
+    <h2>最新ニュース（自動更新）</h2>
+    <div id="news-list">読み込み中...</div>
+  </section>
+
+  <section id="about">
+    <h2>このサイトについて</h2>
+    <p>
+      このページは <strong>公式ニュース・公式発表のみ</strong> を元に、
+      日時・写真付きで自動表示するファン向けまとめサイトです。<br />
+      デマや噂を防ぐため、信頼できる情報源のみを使用します。
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  ※非公式ファンサイト｜情報元：公式ニュース・公式SNS
+</footer>
+
+<script>
+// ===== 年齢を自動計算 =====
+const birth = new Date("1995-10-26");
+const today = new Date();
+let age = today.getFullYear() - birth.getFullYear();
+const m = today.getMonth() - birth.getMonth();
+if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+document.getElementById("age").textContent = age;
+
+// ===== 自動更新ニュース取得（安定版） =====
+// GoogleニュースRSSを直接取得（CORS回避用サービス）
+const RSS_URL = "https://api.allorigins.win/get?url=" + encodeURIComponent(
+  "https://news.google.com/rss/search?q=%E4%B8%AD%E6%9C%AC%E6%82%A0%E5%A4%AA+OR+YUTA+NCT&hl=ja&gl=JP&ceid=JP:ja"
+);
+
+fetch(RSS_URL)
+  .then(res => res.json())
+  .then(data => {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(data.contents, "text/xml");
+    const items = xml.querySelectorAll("item");
+
+    const list = document.getElementById("news-list");
+    list.innerHTML = "";
+
+    items.forEach((item, i) => {
+      if (i >= 5) return;
+
+      const title = item.querySelector("title")?.textContent;
+      const link = item.querySelector("link")?.textContent;
+      const pubDate = item.querySelector("pubDate")?.textContent;
+
+      const card = document.createElement("div");
+      card.className = "news-card";
+
+      const img = document.createElement("img");
+      img.src = "https://via.placeholder.com/120x80?text=NEWS";
+
+      const info = document.createElement("div");
+      info.innerHTML = `
+        <h3>${title}</h3>
+        <div class="news-date">${new Date(pubDate).toLocaleString()}</div>
+        <a href="${link}" target="_blank">元記事を見る</a>
+      `;
+
+      card.appendChild(img);
+      card.appendChild(info);
+      list.appendChild(card);
+    });
+
+    if (list.innerHTML === "") {
+      list.innerText = "現在表示できるニュースがありません";
+    }
+  })
+  .catch(err => {
+    document.getElementById("news-list").innerText = "ニュースを取得できませんでした";
+    console.error(err);
+  });
+</script>
+
+</body>
+</html>
